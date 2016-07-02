@@ -529,27 +529,18 @@ HDWallet.prototype.setP2SHAddressData = function(p2sh_address, redeemScript, add
   this.setDB('p2sh_address/' + p2sh_address, redeemScript + "/" + address)
 }
 
-HDWallet.prototype.getP2SHAddressRedeemScript = function(address, callback) {
-  this.getP2SHAddressDataEntry(address, 0, callback)
-}
-
-HDWallet.prototype.getLocalAddressForP2SHAddress = function(address, callback) {
-  this.getP2SHAddressDataEntry(address, 1, callback)
-}
-
-HDWallet.prototype.getP2SHAddressDataEntry = function(address, index, callback) {
-  this.getP2SHAddressData(address, function(err, data) {
+HDWallet.prototype.getP2SHAddressData = function (address, callback) {
+  var addressKey = 'p2sh_address/' + address
+  this.getDB(addressKey, function(err, data) {
     if (err) { return callback(err) }
     if (!data) { return callback('p2sh address ' + address + ' not found') }
     data = data.split('/')
     if (!data.length) { return callback('data format invalid') }
-    callback(null, data[index])
+    callback(null, {
+      redeemScript: data[0],
+      localAddress: data[1]
+    })
   })
-}
-
-HDWallet.prototype.getP2SHAddressData = function (address, callback) {
-  var addressKey = 'p2sh_address/' + address
-  this.getDB(addressKey, callback)
 }
 
 HDWallet.prototype.isAddressActive = function (addresses, callback) {
