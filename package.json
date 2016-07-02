@@ -17,7 +17,8 @@
     "mkpath": "^0.1.0",
     "path-extra": "^1.0.3",
     "redis": "^0.12.1",
-    "request": "2.69.0"
+    "request": "2.69.0",
+    "sync-request": "^3.0.1"
   },
   "devDependencies": {
     "chai": "^3.3.0",

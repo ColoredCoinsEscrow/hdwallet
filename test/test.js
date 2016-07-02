@@ -143,4 +143,46 @@ describe('Test hdwallet', function () {
     hdwallet.init()
   })
 
+  it('Should get a p2sh address', function (done) {
+    this.timeout(60000)
+    var hdwallet = new HDWallet({network: 'testnet', privateSeed: privateSeed})
+    hdwallet.on('connect', function () {
+      var address = hdwallet.getAddress(undefined, undefined, true)
+      expect(address).to.be.a('string')
+      expect(address).to.have.length.of(35)
+      expect(address[0]).to.equal('2')
+      done()
+    })
+    hdwallet.init()
+  })
+
+  it('Should store redeem script for p2sh address', function (done) {
+    this.timeout(60000)
+    var hdwallet = new HDWallet({network: 'testnet', privateSeed: privateSeed})
+    hdwallet.on('connect', function () {
+      var address = hdwallet.getAddress(undefined, undefined, true)
+      hdwallet.getP2SHAddressRedeemScript(address, function(err, redeemScript) {
+        expect(redeemScript).to.be.a('string')
+        expect(redeemScript).to.have.length.of(142)
+        done()
+      })
+    })
+    hdwallet.init()
+  })
+
+  it('Should store local address for p2sh address', function (done) {
+    this.timeout(60000)
+    var hdwallet = new HDWallet({network: 'testnet', privateSeed: privateSeed})
+    hdwallet.on('connect', function () {
+      var address = hdwallet.getAddress(undefined, undefined, true)
+      hdwallet.getLocalAddressForP2SHAddress(address, function(err, localAddress) {
+        expect(localAddress).to.be.a('string')
+        expect(localAddress).to.have.length.of(34)
+        expect(localAddress[0]).to.equal('m')
+        done()
+      })
+    })
+    hdwallet.init()
+  })
+
 })

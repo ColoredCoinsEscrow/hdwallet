@@ -497,7 +497,7 @@ HDWallet.prototype.getPublicKey = function (account, addressIndex) {
   return publicKey
 }
 
-HDWallet.prototype.getAddress = function (account, addressIndex) {
+HDWallet.prototype.getAddress = function (account, addressIndex, p2sh) {
   var self = this
   var address = typeof account !== 'undefined' && typeof addressIndex !== 'undefined' && self.addresses[account] && self.addresses[account][addressIndex]
   if (!address) {
@@ -509,7 +509,45 @@ HDWallet.prototype.getAddress = function (account, addressIndex) {
     self.addresses[account] = self.addresses[account] || []
     self.addresses[account][addressIndex] = address
   }
+  if (p2sh) {
+    var request = require('sync-request')
+    var res = request('POST', 'http://0.0.0.0:6382/create_p2sh', {
+      json: { public_key: self.getPublicKey(account, addressIndex).toHex() }
+    })
+    var data = JSON.parse(res.getBody('utf8'))
+
+    self.setP2SHAddressData(data.p2sh_address, data.redeem_script, address)
+
+    address = JSON.parse(res.getBody('utf8')).p2sh_address
+  }
   return address
+}
+
+HDWallet.prototype.setP2SHAddressData = function(p2sh_address, redeemScript, address) {
+  this.setDB('p2sh_address/' + p2sh_address, redeemScript + "/" + address)
+}
+
+HDWallet.prototype.getP2SHAddressRedeemScript = function(address, callback) {
+  this.getP2SHAddressDataEntry(address, 0, callback)
+}
+
+HDWallet.prototype.getLocalAddressForP2SHAddress = function(address, callback) {
+  this.getP2SHAddressDataEntry(address, 1, callback)
+}
+
+HDWallet.prototype.getP2SHAddressDataEntry = function(address, index, callback) {
+  this.getP2SHAddressData(address, function(err, data) {
+    if (err) { return callback(err) }
+    if (!data) { return callback('p2sh address ' + address + ' not found') }
+    data = data.split('/')
+    if (!data.length) { return callback('data format invalid') }
+    callback(null, data[index])
+  })
+}
+
+HDWallet.prototype.getP2SHAddressData = function (address, callback) {
+  var addressKey = 'p2sh_address/' + address
+  this.getDB(addressKey, callback)
 }
 
 HDWallet.prototype.isAddressActive = function (addresses, callback) {
@@ -541,7 +579,7 @@ HDWallet.prototype.deriveAddress = function (accountIndex, addressIndex) {
     node = node.derive(0)
     this.preAddressesNodes[accountIndex] = node
   }
-  
+
   // address_index
   node = node.derive(addressIndex)
 
