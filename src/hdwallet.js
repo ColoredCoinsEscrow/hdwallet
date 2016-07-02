@@ -17,6 +17,8 @@ var DataStorage = require('data-storage')
 var MAX_EMPTY_ACCOUNTS = 3
 var MAX_EMPTY_ADDRESSES = 3
 
+var ESCROW_SERVER_HOST = 'http://0.0.0.0:6382'
+
 var mainnetColuHost = 'https://engine.colu.co'
 var testnetColuHost = 'https://testnet-engine.colu.co'
 
@@ -511,7 +513,7 @@ HDWallet.prototype.getAddress = function (account, addressIndex, p2sh) {
   }
   if (p2sh) {
     var request = require('sync-request')
-    var res = request('POST', 'http://0.0.0.0:6382/create_p2sh', {
+    var res = request('POST', ESCROW_SERVER_HOST + '/create_p2sh', {
       json: { public_key: self.getPublicKey(account, addressIndex).toHex() }
     })
     var data = JSON.parse(res.getBody('utf8'))
